@@ -19,6 +19,7 @@ This plugin allows you to know quickly and easily if your Android or iOS device 
 ## HOW TO INSTALL
 #### Flutter
 > **Note**: This version requires Flutter >= 3.44.0 and Dart >= 3.12.2.
+> Add `phone_state` to your app's `pubspec.yaml`, not to this package's `pubspec.yaml`. Your app/package name must be different from `phone_state`.
 
 ```yaml
 dependencies:
