@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:phone_state/phone_state.dart';
 
-main() {
+void main() {
   runApp(const MaterialApp(home: Example()));
 }
 

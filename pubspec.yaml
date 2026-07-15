@@ -4,8 +4,8 @@ version: 3.0.1
 homepage: https://github.com/andreamainella98/phone_state
 
 environment:
-  sdk: ^3.9.2
-  flutter: '>=3.3.0'
+  sdk: ^3.12.2
+  flutter: '>=3.44.0'
 
 dependencies:
   flutter:
