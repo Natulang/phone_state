@@ -12,7 +12,7 @@ This plugin allows you to know quickly and easily if your Android or iOS device 
 ## PAY ATTENTION
 
 - In the iOS simulator doesn't work
-- The phone number is only obtainable on Android!
+- The caller phone number is only available on Android, not iOS
 - This plugin only reports phone call state. It does not record call audio or change whether other packages can capture call audio.
 - Android detects system telephony call state only. Third-party VoIP calls from apps such as Telegram or WhatsApp are not supported. iOS CallKit behavior can differ by app.
 

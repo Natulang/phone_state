@@ -10,7 +10,7 @@ class PhoneState {
   /// The current phone state
   PhoneStateStatus status;
 
-  /// The number of the caller. NOT WORKING ON IOS
+  /// The caller phone number, available only on Android and not provided on iOS.
   String? number;
 
   /// The duration of call
