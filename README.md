@@ -15,8 +15,9 @@ This plugin allows you to know quickly and easily if your Android or iOS device 
 - The caller phone number is only available on Android, not iOS
 - This plugin only reports phone call state. It does not record call audio or change whether other packages can capture call audio.
 - Android detects system telephony call state only. Third-party VoIP calls from apps such as Telegram or WhatsApp are not supported. iOS CallKit behavior can differ by app.
+- The iOS implementation uses CallKit. For apps distributed in regions where CallKit is restricted, including China App Store review contexts, confirm availability and territory rules with Apple before submission.
 
-<a href="https://www.buymeacoffee.com/maine98" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
+[![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/maine98)
 
 ## HOW TO INSTALL
 #### Flutter
