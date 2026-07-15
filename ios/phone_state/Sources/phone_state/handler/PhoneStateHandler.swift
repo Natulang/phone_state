@@ -14,9 +14,8 @@ class PhoneStateHandler: NSObject, FlutterStreamHandler, CXCallObserverDelegate 
     
     private var _eventSink: FlutterEventSink?
     private var callObserver = CXCallObserver()
-    private var callStartTime: Date?
+    private let callDurationTracker = CallDurationTracker()
     private var durationTimer: Timer?
-    private var callDuration: Int = 0
     
     override init() {
         super.init()
@@ -38,27 +37,32 @@ class PhoneStateHandler: NSObject, FlutterStreamHandler, CXCallObserverDelegate 
     }
     
     private func startDurationTimer() {
-        callStartTime = Date()
-        callDuration = 0
+        callDurationTracker.start()
         durationTimer?.invalidate()
         durationTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) {
             [weak self]_ in guard let self = self else { return }
-            if let startTime = self.callStartTime {
-                self.callDuration = Int(Date().timeIntervalSince(startTime))
+            if self.callDurationTracker.isRunning {
+                self.callDurationTracker.updateDuration()
                 self.sendCallState(.CALL_STARTED)
             }
         }
     }
     
+    private func startDurationTimerIfNeeded() {
+        if !callDurationTracker.isRunning {
+            startDurationTimer()
+        }
+    }
+
     private func stopDurationTimer() {
         durationTimer?.invalidate()
         durationTimer = nil
-        callStartTime = nil
+        callDurationTracker.stop()
     }
     
     private func resetCallDuration() {
         stopDurationTimer()
-        callDuration = 0
+        callDurationTracker.reset()
     }
     
     private func sendCallState(_ status: PhoneStateStatus) {
@@ -70,7 +74,7 @@ class PhoneStateHandler: NSObject, FlutterStreamHandler, CXCallObserverDelegate 
                      Cannot get phone number on iOS
                      */
                     "phoneNumber": nil,
-                    "callDuration": callDuration
+                    "callDuration": callDurationTracker.duration
                 ]
             )
         }
@@ -86,17 +90,15 @@ class PhoneStateHandler: NSObject, FlutterStreamHandler, CXCallObserverDelegate 
         case.CALL_INCOMING:
             resetCallDuration()
             /*
-             Outgoing dialing — reset timer (will start once connected)
+             Outgoing dialing — start duration as early as CallKit reports the call
              */
         case.CALL_OUTGOING:
-            resetCallDuration()
+            startDurationTimerIfNeeded()
             /*
              Call connected (incoming answered or outgoing connected)
              */
         case.CALL_STARTED:
-            if callStartTime == nil {
-                startDurationTimer()
-            }
+            startDurationTimerIfNeeded()
             /*
              Call finished
              */
@@ -119,17 +121,20 @@ class PhoneStateHandler: NSObject, FlutterStreamHandler, CXCallObserverDelegate 
                 
                 switch callStatus {
                     /*
-                     Reset duration timer for new incoming/outgoing calls
+                     Reset duration timer for new incoming calls
                      */
-                case.CALL_INCOMING, .CALL_OUTGOING:
+                case.CALL_INCOMING:
                     resetCallDuration()
+                    /*
+                     Start duration as early as CallKit reports outgoing calls
+                     */
+                case.CALL_OUTGOING:
+                    startDurationTimerIfNeeded()
                     /*
                      Start timer if a call is already in progress
                      */
                 case.CALL_STARTED:
-                    if callStartTime == nil {
-                        startDurationTimer()
-                    }
+                    startDurationTimerIfNeeded()
                 default:
                     break
                 }
