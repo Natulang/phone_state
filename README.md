@@ -17,6 +17,7 @@ This plugin allows you to know quickly and easily if your Android or iOS device 
 - Android detects system telephony call state only. Third-party VoIP calls from apps such as Telegram or WhatsApp are not supported. iOS CallKit behavior can differ by app.
 - The iOS implementation uses CallKit. For apps distributed in regions where CallKit is restricted, including China App Store review contexts, confirm availability and territory rules with Apple before submission.
 - `PhoneState.stream` requires the app process to be running with an active Flutter engine and listener. It does not send callbacks after the app is terminated.
+- On Android, if `PhoneState.stream` does not emit, confirm `READ_PHONE_STATE` is declared and granted at runtime. Some OEM battery or background restrictions, including MIUI settings on Xiaomi devices, can also delay or block callbacks.
 
 [![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/maine98)
 
