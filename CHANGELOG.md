@@ -1,3 +1,9 @@
+## 4.0.0
+- Added Swift Package Manager support
+- Fixed iOS call duration updates
+- Fixed Android stream cleanup
+- Fixed Android initial state permission handling
+- Updated documentation
 ## 3.0.2
 - Updated version of Flutter to latest
 ## 3.0.1
