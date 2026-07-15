@@ -1,3 +1,5 @@
+## 4.0.1
+- Corrected LICENSE information
 ## 4.0.0
 - Added Swift Package Manager support
 - Fixed iOS call duration updates
