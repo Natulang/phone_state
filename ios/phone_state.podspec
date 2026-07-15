@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'phone_state'
-  s.version          = '3.0.1'
+  s.version          = '3.0.2'
   s.summary          = 'Plugin used to obtain the status of an incoming call in Android and iOS'
   s.description      = <<-DESC
 Plugin used to obtain the status of an incoming call in Android and iOS
@@ -13,7 +13,7 @@ Plugin used to obtain the status of an incoming call in Android and iOS
   s.license          = { :file => '../LICENSE' }
   s.author           = { 'Andrea Mainella' => 'andrea.mainella98@gmail.com' }
   s.source           = { :path => '.' }
-  s.source_files = 'Classes/**/*'
+  s.source_files = 'phone_state/Sources/phone_state/**/*.swift'
   s.dependency 'Flutter'
   s.platform = :ios, '13.0'
 
