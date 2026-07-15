@@ -50,6 +50,14 @@ StreamBuilder<PhoneState>(
   ...
 ```
 
+### Troubleshooting package conflicts
+
+If `phone_state` stops receiving updates after adding another package:
+
+- Confirm the required Android runtime permissions are granted before listening. `READ_PHONE_STATE` is required, and `READ_CALL_LOG` is only needed for caller phone numbers.
+- Keep a single active `PhoneState.stream` listener for each app flow. Cancel the previous subscription before starting another one when screens, services, or background handlers change.
+- When reporting a conflict, include the other package names, platform versions, a minimal reproduction, and the relevant Flutter, Logcat, or Xcode logs.
+
 ## SCREENSHOT
 
 <img src="https://raw.githubusercontent.com/andreamainella98/phone_state/master/images/example.gif" width=300/>
