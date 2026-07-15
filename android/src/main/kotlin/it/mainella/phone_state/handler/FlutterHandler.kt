@@ -108,7 +108,12 @@ class FlutterHandler(binding: FlutterPlugin.FlutterPluginBinding) {
                     Manifest.permission.READ_CALL_LOG
                 ) == PackageManager.PERMISSION_GRANTED
 
-                if (hasPhoneStatePermission && hasCallLogPermission) {
+                val permissions = PhoneStatePermissions(
+                    hasReadPhoneState = hasPhoneStatePermission,
+                    hasReadCallLog = hasCallLogPermission
+                )
+
+                if (permissions.canEmitInitialState) {
                     receiver.instance(applicationContext)
                     emitPhoneState(token, receiver)
                 }
