@@ -18,97 +18,116 @@ import java.util.Timer
 import java.util.TimerTask
 
 class FlutterHandler(binding: FlutterPlugin.FlutterPluginBinding) {
+    private val applicationContext = binding.applicationContext
     private var phoneStateEventChannel: EventChannel = EventChannel(binding.binaryMessenger, Constants.EVENT_CHANNEL)
+    private val streamLifecycle = PhoneStateStreamLifecycle<PhoneStateReceiver>()
     private var durationTimer: Timer? = null
     private val mainHandler = Handler(Looper.getMainLooper())
 
-    init {
-        phoneStateEventChannel.setStreamHandler(object : EventChannel.StreamHandler {
-            private lateinit var receiver: PhoneStateReceiver
-
-            private fun startDurationUpdates(events: EventChannel.EventSink?) {
-                durationTimer?.cancel()
-                durationTimer = Timer()
-                durationTimer?.schedule(object : TimerTask() {
-                    override fun run() {
-                        if (receiver.status == PhoneStateStatus.CALL_STARTED) {
-                            receiver.updateDuration()
-                            mainHandler.post {
-                                events?.success(
-                                    mapOf(
-                                        "status" to receiver.status.name,
-                                        "phoneNumber" to receiver.phoneNumber,
-                                        "callDuration" to receiver.callDuration.toInt()
-                                    )
-                                )
-                            }
-                        }
-                    }
-                }, 0, 1000)
-            }
-
-            private fun stopDurationUpdates() {
-                durationTimer?.cancel()
-                durationTimer = null
-            }
-
-            override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
-                receiver = object : PhoneStateReceiver() {
-                    override fun onReceive(context: Context?, intent: Intent?) {
-                        super.onReceive(context, intent)
-                        if (status == PhoneStateStatus.CALL_STARTED) {
-                            startDurationUpdates(events)
-                        } else if (status == PhoneStateStatus.CALL_ENDED) {
-                            stopDurationUpdates()
-                        }
-                        events?.success(
-                            mapOf(
-                                "status" to status.name,
-                                "phoneNumber" to phoneNumber,
-                                "callDuration" to callDuration.toInt()
-                            )
-                        )
+    private fun startDurationUpdates(token: Long, receiver: PhoneStateReceiver) {
+        durationTimer?.cancel()
+        durationTimer = Timer()
+        durationTimer?.schedule(object : TimerTask() {
+            override fun run() {
+                if (streamLifecycle.isActive(token) && receiver.status == PhoneStateStatus.CALL_STARTED) {
+                    receiver.updateDuration()
+                    mainHandler.post {
+                        emitPhoneState(token, receiver)
                     }
                 }
+            }
+        }, 0, 1000)
+    }
 
-                val context = binding.applicationContext
+    private fun stopDurationUpdates() {
+        durationTimer?.cancel()
+        durationTimer = null
+    }
+
+    private fun unregisterReceiver() {
+        streamLifecycle.unregisterReceiver { receiver ->
+            applicationContext.unregisterReceiver(receiver)
+        }
+    }
+
+    private fun stopListening() {
+        streamLifecycle.stop()
+        stopDurationUpdates()
+        unregisterReceiver()
+    }
+
+    private fun emitPhoneState(token: Long, receiver: PhoneStateReceiver) {
+        streamLifecycle.emit(
+            token,
+            mapOf(
+                "status" to receiver.status.name,
+                "phoneNumber" to receiver.phoneNumber,
+                "callDuration" to receiver.callDuration.toInt()
+            )
+        )
+    }
+
+    private fun createReceiver(token: Long): PhoneStateReceiver {
+        return object : PhoneStateReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                if (!streamLifecycle.isActive(token)) {
+                    return
+                }
+
+                super.onReceive(context, intent)
+
+                if (!streamLifecycle.isActive(token)) {
+                    return
+                }
+
+                if (status == PhoneStateStatus.CALL_STARTED) {
+                    startDurationUpdates(token, this)
+                } else if (status == PhoneStateStatus.CALL_ENDED) {
+                    stopDurationUpdates()
+                }
+                emitPhoneState(token, this)
+            }
+        }
+    }
+
+    init {
+        phoneStateEventChannel.setStreamHandler(object : EventChannel.StreamHandler {
+            override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
+                stopListening()
+
+                val token = streamLifecycle.start(events)
+                val receiver = createReceiver(token)
+
                 val hasPhoneStatePermission = ContextCompat.checkSelfPermission(
-                    context,
+                    applicationContext,
                     Manifest.permission.READ_PHONE_STATE
                 ) == PackageManager.PERMISSION_GRANTED
 
                 val hasCallLogPermission = ContextCompat.checkSelfPermission(
-                    context,
+                    applicationContext,
                     Manifest.permission.READ_CALL_LOG
                 ) == PackageManager.PERMISSION_GRANTED
 
                 if (hasPhoneStatePermission && hasCallLogPermission) {
-                    receiver.instance(context)
-                    events?.success(
-                        mapOf(
-                            "status" to receiver.status.name,
-                            "phoneNumber" to receiver.phoneNumber,
-                            "callDuration" to receiver.callDuration.toInt()
-                        )
-                    )
+                    receiver.instance(applicationContext)
+                    emitPhoneState(token, receiver)
                 }
 
-                binding.applicationContext.registerReceiver(
+                applicationContext.registerReceiver(
                     receiver,
                     IntentFilter(TelephonyManager.ACTION_PHONE_STATE_CHANGED)
                 )
+                streamLifecycle.registerReceiver(receiver)
             }
 
             override fun onCancel(arguments: Any?) {
-                stopDurationUpdates()
-                binding.applicationContext.unregisterReceiver(receiver)
+                stopListening()
             }
         })
     }
 
     fun dispose() {
-        durationTimer?.cancel()
-        durationTimer = null
+        stopListening()
         phoneStateEventChannel.setStreamHandler(null)
     }
 }
