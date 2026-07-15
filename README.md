@@ -13,7 +13,7 @@ This plugin allows you to know quickly and easily if your Android or iOS device 
 
 - In the iOS simulator doesn't work
 - The caller phone number is only available on Android, not iOS
-- This plugin only reports phone call state. It does not record call audio or change whether other packages can capture call audio.
+- This plugin reports phone call state only. It does not answer, reject, end, or record calls, and it does not change whether other packages can capture call audio.
 - Android detects system telephony call state only. Third-party VoIP calls from apps such as Telegram or WhatsApp are not supported. iOS CallKit behavior can differ by app.
 - The iOS implementation uses CallKit. For apps distributed in regions where CallKit is restricted, including China App Store review contexts, confirm availability and territory rules with Apple before submission.
 - `PhoneState.stream` requires the app process to be running with an active Flutter engine and listener. It does not send callbacks after the app is terminated.
