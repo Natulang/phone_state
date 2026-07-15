@@ -1,3 +1,5 @@
+## 3.0.2
+- Updated version of Flutter to latest
 ## 3.0.1
 - Fixed error on iOS build
 ## 3.0.0
