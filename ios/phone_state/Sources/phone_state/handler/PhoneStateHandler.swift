@@ -13,14 +13,9 @@ import Flutter
 class PhoneStateHandler: NSObject, FlutterStreamHandler, CXCallObserverDelegate {
     
     private var _eventSink: FlutterEventSink?
-    private var callObserver = CXCallObserver()
+    private var callObserver: CXCallObserver?
     private let callDurationTracker = CallDurationTracker()
     private var durationTimer: Timer?
-    
-    override init() {
-        super.init()
-        callObserver.setDelegate(self, queue: nil)
-    }
     
     private func getCallState(from call: CXCall) -> PhoneStateStatus {
         if !call.isOutgoing && !call.hasConnected && !call.hasEnded {
@@ -113,8 +108,11 @@ class PhoneStateHandler: NSObject, FlutterStreamHandler, CXCallObserverDelegate 
     
     public func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
         _eventSink = events
+        let observer = CXCallObserver()
+        observer.setDelegate(self, queue: nil)
+        callObserver = observer
         var initialStatus = PhoneStateStatus.NOTHING
-        for call in callObserver.calls {
+        for call in observer.calls {
             let callStatus = getCallState(from: call)
             if callStatus != .NOTHING {
                 initialStatus = callStatus
@@ -149,6 +147,7 @@ class PhoneStateHandler: NSObject, FlutterStreamHandler, CXCallObserverDelegate 
     
     public func onCancel(withArguments arguments: Any?) -> FlutterError? {
         stopDurationTimer()
+        callObserver = nil
         _eventSink = nil
         return nil
     }
